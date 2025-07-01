@@ -15,27 +15,71 @@ const categories = [
     
   },
   {
-    name: "Hogar",
-    url: "/categorias/hogar",
+    name: "Electrodomésticos de Cocina y Hogar",
+    
     subcategories: [
-      { name: "Muebles", url: "/categorias/hogar/muebles" },
-      { name: "Decoración", url: "/categorias/hogar/decoracion" },
-      { name: "Iluminación", url: "/categorias/hogar/iluminacion" },
-      { name: "Cocina", url: "/categorias/hogar/cocina" },
+      { name: "Cocina", items: ["Procesadoras", "Batidoras", "Mixers", "Sandwicheras"] },
+      { name: "Limpieza", items: ["Aspiradoras", "Planchas"] }
     ],
     
   },
   {
-    name: "Tecnología",
-    url: "/categorias/tecnologia",
+    name: "Muebles y Equipamiento para el Hogar",
+   
     subcategories: [
-      { name: "Smart TV", url: "/categorias/tecnologia/smart-tv" },
-      { name: "Audio", url: "/categorias/tecnologia/audio" },
-      { name: "Computadoras", url: "/categorias/tecnologia/computadoras" },
-      { name: "Celulares", url: "/categorias/tecnologia/celulares" },
+      { name: "Muebles", items: ["Sillas", "Mesas", "Estanterías"] },
+      { name: "Organización", items: ["Roperos", "Zapateros"] }
     ],
     
   },
+  {
+    name: "Descanso y Dormitorio",
+    
+    subcategories: [
+      { name: "Dormitorio", items: ["Colchones", "Almohadas", "Sábanas"] },
+      { name: "Descanso", items: ["Sommier", "Respaldo"] }
+    ]
+  },
+  {
+    name: "Tecnología y Electrónica",
+   
+    subcategories: [
+      { name: "Dispositivos", items: ["Celulares", "Tablets", "Laptops"] },
+      { name: "Accesorios", items: ["Auriculares", "Cargadores"] }
+    ]
+  },
+  {
+    name: "Herramientas y Equipos Especiales",
+    
+    subcategories: [
+      { name: "Herramientas eléctricas", items: ["Taladros", "Amoladoras"] },
+      { name: "Equipos", items: ["Soldadoras", "Compresores"] }
+    ]
+  },
+  {
+    name: "Vehículos y Movilidad",
+    
+    subcategories: [
+      { name: "Movilidad personal", items: ["Bicicletas", "Monopatines"] },
+      { name: "Vehículos", items: ["Motos", "Autos"] }
+    ]
+  },
+  {
+    name: "Camping y Ocio",
+    
+    subcategories: [
+      { name: "Camping", items: ["Carpas", "Linternas"] },
+      { name: "Ocio", items: ["Juegos", "Deportes"] }
+    ]
+  },
+  {
+    name: "Cuidado Personal y Salud",
+    
+    subcategories: [
+      { name: "Cuidado personal", items: ["Secadores", "Afeitadoras"] },
+      { name: "Salud", items: ["Termómetros", "Oxímetros"] }
+    ]
+  }
 ];
 
 const CategoryPanel = () => {
@@ -88,7 +132,7 @@ const CategoryPanel = () => {
                 onClick={() => redirect(cat.url)}
                 className={`w-full text-left flex items-center px-3 py-2 rounded-lg transition font-medium ${
                   hoveredCategory === idx
-                    ? "bg-blue-100 text-blue-700 shadow"
+                    ? "bg-blue-100 text-[#ff5252]  shadow"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
                 style={{ outline: "none" }}
@@ -104,7 +148,7 @@ const CategoryPanel = () => {
           {hoveredCategory !== null && (
             <div className="flex-1 flex flex-row min-w-[300px] py-4 px-6 items-stretch">
               <div className="flex flex-col gap-1 flex-1">
-                <div className="font-bold text-lg text-blue-700 mb-2 flex items-center gap-2">
+                <div className="font-bold text-lg text-[#ff5252] mb-2 flex items-center gap-2">
                   {categories[hoveredCategory].name}
                 </div>
                 <div className="grid grid-cols-1 gap-0">
@@ -119,16 +163,7 @@ const CategoryPanel = () => {
                   ))}
                 </div>
               </div>
-              {/* Imagen ilustrativa (opcional) */}
-              {categories[hoveredCategory].image && (
-                <div className="hidden md:flex items-center ml-5">
-                  <img
-                    src={categories[hoveredCategory].image}
-                    alt={categories[hoveredCategory].name}
-                    className="rounded-lg w-28 h-24 object-cover border border-gray-100 shadow"
-                  />
-                </div>
-              )}
+              
             </div>
           )}
           <style jsx="true">{`

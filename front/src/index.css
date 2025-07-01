@@ -15,7 +15,7 @@ a:hover{color: rgba(243, 118, 1, 0.959);}
 .MuiBadge-badge{background-color: #ff5252 !important;}
 
 nav ul button{text-transform: capitalize !important;}
-
+.btn-org{background-color:#ff5252 !important;color: #f5f0f0 !important; font-weight: 500; font-size: 16px ; padding:7px 20px !important ;}
 
 .sliderHome {overflow: inherit !important;}
 
@@ -38,5 +38,11 @@ nav ul button{text-transform: capitalize !important;}
 
 .homeCardSlider .swiper-button-prev:hover,.homeCardSlider .swiper-button-next:hover{background: #ff5252 !important;}
 .homeCardSlider .swiper-button-prev:hover::after,.homeCardSlider .swiper-button-next:hover::after{color: #f5f0f0 !important;}
+
+
+.MuiTabs-indicator{background-color: #ff5252 !important;}
+.MuiTab-textColorPrimary.Mui-selected{color: #ff5252 !important;}
+
+.productsSlider .swiper-wrapper{padding: 15px; margin-left: 15px; margin-right: -15px;}
 
 

@@ -108,7 +108,7 @@ const Header = () => {
                     onClick={() => openModal("register")}
                     className="link transition color-red text-xs md:text-base font-medium ml-0 md:ml-1"
                   >
-                    Register
+                    
                   </button>
                 </li>
               ) : (

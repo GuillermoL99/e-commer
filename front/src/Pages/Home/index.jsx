@@ -1,11 +1,16 @@
 import React from "react"
 import HomeSlider from "../../components/HomeSlider"
 import HomeCardSlider from "../../components/HomeCardSlider"
-import Footer from "../../components/Footer"
+import ProductSlider from "../../components/ProductsSlider";
+import HomeBannerV2 from "../../components/HomeSliderV2";
+import BannerBox from "../../components/BannerBox";
+
+
+
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
-import ProductSlider from "../../components/ProductsSlider";
+
 
 
 const Home = () =>{
@@ -18,9 +23,12 @@ const Home = () =>{
     return (
       <>
         <HomeSlider />
-        <br />
+        
+      
         <HomeCardSlider />
         <br/>
+
+
         <section className=" py-4 bg-white">
           <div className="container">
             <div className="flex items-center justify-between">
@@ -57,13 +65,30 @@ const Home = () =>{
           </div>
         </section>
 
+         <section className="py-6 bg-white">
+          <div className="container flex items-start gap-6">
+            <div className="part1 w-[70%]">
+              <HomeBannerV2/>
+            </div>
+
+            <div className="part2 w-[30%] flex flex-col gap-4">
+              <BannerBox info="left" image={"https://serviceapi.spicezgold.com/download/1741664496923_1737020250515_New_Project_47.jpg"} />
+              <BannerBox info="right" image={"https://serviceapi.spicezgold.com/download/1741664665391_1741497254110_New_Project_50.jpg"}/>
+            </div>
+            
+          </div>
+        </section>
+
         <section className="py-4">
           <div className="container">
             <h2 className="text-[20px] font-[600] ">Ultimos productos</h2>
             <ProductSlider items={5} />
+           
           </div>
+          
         </section>
-
+         
+        
         <section className="py-4">
           <div className="container">
             <h2 className="text-[20px] font-[600] ">Productos destacados</h2>
@@ -71,7 +96,7 @@ const Home = () =>{
           </div>
         </section>
         <br /> 
-        <Footer />
+        
       </>
     );
 }

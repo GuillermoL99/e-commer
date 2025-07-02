@@ -115,7 +115,7 @@ const CategoryPanel = () => {
       >
         <BiMenuAltLeft className="text-[20px] " />
         Categorías
-        <LiaAngleDownSolid className={`ml-1 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <LiaAngleDownSolid className={` ml-1 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (

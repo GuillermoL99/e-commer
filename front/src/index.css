@@ -8,7 +8,7 @@ body{
     overflow-x: hidden;
 }
 
-.container{width: 120% ; margin: auto;}
+.container{width: 95% ; margin: auto;}
 
 a:hover{color: rgba(243, 118, 1, 0.959);}
 
@@ -16,7 +16,7 @@ a:hover{color: rgba(243, 118, 1, 0.959);}
 
 nav ul button{text-transform: capitalize !important;}
 .btn-org{background-color:#ff5252 !important;color: #f5f0f0 !important; font-weight: 500; font-size: 16px ; padding:7px 20px !important ;}
-
+.btn-org:hover{background: #ff0000 !important;}
 .sliderHome {overflow: inherit !important;}
 
 .swiper-button-prev,.swiper-button-next{display: flex; align-items: center; justify-content: center; background-color: #f5f0f0; border-radius: 100% ;width: 45px;height: 45px; min-width: 45px;}
@@ -32,7 +32,7 @@ nav ul button{text-transform: capitalize !important;}
 .homeCardSlider .swiper-button-prev:after,.homeCardSlider .swiper-button-next:after{font-size:  16px !important;}
 
 .homeCardSlider .swiper-button-prev{left: 1px !important;}
-.homeCardSlider .swiper-button-next{right: 1px !important;}
+.homeCardSlider .swiper-button-next{right: 1px !important; font-size: 5px;}
 
 .homeCardSlider .item:hover img{transform:scale(1.3);}
 
@@ -45,4 +45,23 @@ nav ul button{text-transform: capitalize !important;}
 
 .productsSlider .swiper-wrapper{padding: 15px; margin-left: 15px; margin-right: -15px;}
 
+.swiper-pagination-bullet-active{background: #ff5252 !important;}
 
+.homeSliderV2 .swiper-slide-active .info{right: 0px !important;opacity: 1;}
+.homeSliderV2 .swiper-slide-active .info .h4info{right: 0px !important;opacity: 1;}
+.homeSliderV2 .swiper-slide-active .info .h3info{right: 0px !important;opacity: 1;}
+.homeSliderV2 .swiper-slide-active .info .h2info{right: 0px !important;opacity: 1;}
+.homeSliderV2 .swiper-slide-active .info .butoninfo{right: 0px !important;opacity: 1;}
+
+.homeSliderV2 .info .h4info{transition-duration: 1.2s;}
+.homeSliderV2 .info .h3info{transition-duration: 1.8s;}
+.homeSliderV2 .info .h2info{transition-duration: 1.5s;}
+
+.homeSliderV2 .info .butoninfo{transition-duration: 2.1s;}
+
+.ReactCollapse--collapse {transition: height 400ms;}
+
+
+.ItemViewActions button.active svg{color:#ff5252 !important ; opacity: 1;}
+.MuiPaginationItem-root.Mui-selected{background: #ff5252 !important;color: #fff !important;}
+.MuiPaginationItem-page.Mui-selected{background: #ff5252 !important;color: #fff !important;}

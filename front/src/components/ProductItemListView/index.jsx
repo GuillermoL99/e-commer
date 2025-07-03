@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import "../ProductItems/estilos.css";
 import { Link } from "react-router-dom";
 import { MdOutlineZoomOutMap } from "react-icons/md";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { Button } from "@mui/material";
+import { MyContext } from "../../App";
 
 const ProductItemListView = ({ products = [] }) => {
+
+    const context = useContext(MyContext);
+
     return (
         <div className="productItem rounded-md shadow-lg overflow-hidden border-2 border-[rgba(0,0,0,0.1)] flex items-center ">
       <div className="group imgWrapper w-[25%] rounded-md relative">
@@ -27,7 +31,8 @@ const ProductItemListView = ({ products = [] }) => {
         </Link>
 
         <div className="actions absolute top-[210px] right-[15px] z-50 flex items-center gap-2 flex-col w-[30px] transition-all duration-300 group-hover:top-[15px] opacity-0 group-hover:opacity-100">
-          <Button className="!w-[35px] !h-[35px] !min-w-[35px] !rounded-full  !bg-white text-black hover:!bg-[#ff5252] ">
+          <Button className="!w-[35px] !h-[35px] !min-w-[35px] !rounded-full  !bg-white text-black hover:!bg-[#ff5252] "
+          onClick={() => context.setOpenProductDetailModal(true)}>
             <MdOutlineZoomOutMap className="text-[18px] !text-black group-hover:text-white " />
           </Button>
         </div>

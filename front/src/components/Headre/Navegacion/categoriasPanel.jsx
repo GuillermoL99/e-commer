@@ -1,11 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
-import { BiMenuAltLeft } from "react-icons/bi";
-import { LiaAngleDownSolid, LiaAngleRightSolid } from "react-icons/lia";
+// React y dependencias externas
+import React, { useState, useRef, useEffect } from "react"
+
+// Íconos
+import { BiMenuAltLeft } from "react-icons/bi"
+import { LiaAngleDownSolid, LiaAngleRightSolid } from "react-icons/lia"
 
 const categories = [
   {
     name: "Linea blanca y climatizacion",
-    
+    url: "/product-listing",
     subcategories: [
       { name: "Heladeras", url: "/categorias/electrodomesticos/heladeras" },
       { name: "Lavarropas", url: "/categorias/electrodomesticos/lavarropas" },

@@ -2,3 +2,22 @@
 .productItem .actions button:hover svg{color: #fff !important;}
 .productItem .actions button svg{pointer-events: none !important;}
 
+/* Utilidad para limitar líneas de texto */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Mejorar hover effects */
+.productItem:hover {
+    border-color: #ff5252;
+}
+
+.productItem .link:hover {
+    color: #ff5252 !important;
+}
+

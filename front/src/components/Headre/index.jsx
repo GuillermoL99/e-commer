@@ -1,16 +1,42 @@
-import React, { useState } from "react";
-import Search from "../Search";
-import Navegacion from "./Navegacion";
-import Badge from "@mui/material/Badge";
-import { styled } from "@mui/material/styles";
-import IconButton from "@mui/material/IconButton";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { IoIosGitCompare } from "react-icons/io";
-import { AiOutlineHeart } from "react-icons/ai";
-import Tooltip from "@mui/material/Tooltip";
-import Modal from "../login/Modal";
-import { LoginForm, RegisterForm } from "../login/Modal/AuthForm";
-import { useAuthUser } from "../login/useAuthUser";
+// React y dependencias externas
+import React, { useContext, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+
+// Estilos
+import './styles.css'
+
+// Material-UI
+import { 
+  Badge, 
+  IconButton, 
+  Tooltip,
+  Menu,
+  MenuItem,
+  Avatar,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Typography,
+  Box
+} from "@mui/material"
+import { styled } from "@mui/material/styles"
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart"
+
+// Íconos
+import { 
+  Person,
+  ShoppingBag,
+  Settings,
+  ExitToApp,
+  AccountCircle,
+  Favorite,
+  Compare
+} from "@mui/icons-material"
+
+// Componentes locales
+import Search from "../Search"
+import Navegacion from "./Navegacion"
+import { MyContext } from "../../App"
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -22,36 +48,36 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 }));
 
 const Header = () => {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalType, setModalType] = useState("login");
-  const [successMsg, setSuccessMsg] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const { user, login, logout } = useAuthUser();
-
-  const openModal = (type) => {
-    setModalType(type);
-    setSuccessMsg("");
-    setModalOpen(true);
+  const context = useContext(MyContext);
+  const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Estado simulado de login
+  
+  // Datos simulados del usuario
+  const userData = {
+    firstName: 'Juan Carlos',
+    lastName: 'Rodríguez',
+    email: 'juan.rodriguez@email.com',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face'
+  };
+  
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
   };
 
-  const closeModal = () => {
-    setModalOpen(false);
-    setSuccessMsg("");
+  const handleMenuClose = () => {
+    setAnchorEl(null);
   };
-
-  function handleAuthSuccess(data) {
-    setSuccessMsg(data.msg || "¡Operación exitosa!");
-    setTimeout(() => {
-      closeModal();
-      if (data.usuario) login(data.usuario); // login con datos reales
-      else if (data.token) login(data); // fallback
-    }, 1200);
-  }
 
   const handleLogout = () => {
-    logout();
-    setMenuOpen(false);
+    setIsLoggedIn(false);
+    handleMenuClose();
+    navigate('/login');
+  };
+
+  const handleProfileClick = () => {
+    handleMenuClose();
+    navigate('/profile');
   };
 
   return (
@@ -92,110 +118,161 @@ const Header = () => {
           <div className="col2 w-full md:w-[80%] mb-2 md:mb-0 flex justify-center">
             <Search />
           </div>
-          {/* Iconos & Login/Register o Usuario */}
+          {/* Iconos & Login/Register */}
           <div className="col3 w-full md:w-[40%] flex items-center justify-center md:justify-end pl-0 md:pl-6">
-            <ul className="flex items-center gap-8 flex-wrap justify-center">
-              {!user ? (
-                <li>
-                  <button
-                    onClick={() => openModal("login")}
-                    className="link transition color-red text-10px md:text-base font-medium"
+            <ul className={`flex items-center flex-wrap justify-center header-actions ${isLoggedIn ? 'logged-in' : ''}`}>
+              {/* Login/Register - Solo si no está logueado */}
+              {!isLoggedIn && (
+                <li className="auth-links">
+                  <Link
+                    to="/login"
+                    className="link transition color-red text-xs md:text-base font-medium hover:text-[#ff5252]"
                   >
                     Login
-                  </button>
-                  <span className="hidden md:inline"> | </span>
-                  <button
-                    onClick={() => openModal("register")}
-                    className="link transition color-red text-xs md:text-base font-medium ml-0 md:ml-1"
+                  </Link>
+                  <span className="text-gray-400"> | </span>
+                  <Link
+                    to="/register"
+                    className="link transition color-red text-xs md:text-base font-medium hover:text-[#ff5252]"
                   >
-                    
-                  </button>
-                </li>
-              ) : (
-                <li className="relative">
-                  <button
-                    className="font-medium text-base flex items-center gap-2 focus:outline-none"
-                    onClick={() => setMenuOpen(!menuOpen)}
-                  >
-                    {user.nombre || user.email}
-                    <svg className={`w-4 h-4 transform transition ${menuOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {menuOpen && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
-                      <a
-                        href="/perfil"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Perfil
-                      </a>
-                      <a
-                        href="/perfil"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Favoritos
-                      </a>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                      >
-                        Cerrar sesión
-                      </button>
-                    </div>
-                  )}
+                    Register
+                  </Link>
                 </li>
               )}
+              
               <li>
                 <Tooltip title="Carrito">
-                  <IconButton aria-label="cart">
+                  <IconButton 
+                    aria-label="cart" 
+                    onClick={()=>context.setOpenCarritoPanel(true)}
+                    className="cart-button"
+                  >
                     <StyledBadge badgeContent={1} color="secondary">
                       <ShoppingCartIcon />
                     </StyledBadge>
                   </IconButton>
                 </Tooltip>
               </li>
+              
+              {/* Menú de usuario */}
               <li>
-                <Tooltip title="Comparar">
-                  <IconButton aria-label="compare">
-                    <StyledBadge badgeContent={1} color="secondary">
-                      <IoIosGitCompare />
-                    </StyledBadge>
-                  </IconButton>
-                </Tooltip>
-              </li>
-              <li>
-                <Tooltip title="Favoritos">
-                  <IconButton aria-label="favorite">
-                    <StyledBadge badgeContent={1} color="secondary">
-                      <AiOutlineHeart />
-                    </StyledBadge>
-                  </IconButton>
-                </Tooltip>
+                {isLoggedIn ? (
+                  <>
+                    <Tooltip title="Mi Perfil">
+                      <Box 
+                        onClick={handleMenuOpen}
+                        className="user-profile-section"
+                      >
+                        <Avatar
+                          src={userData.avatar}
+                          className="user-avatar"
+                        />
+                        <Box className="user-info">
+                          <Typography className="user-name">
+                            {userData.firstName} {userData.lastName}
+                          </Typography>
+                          <Typography className="user-email">
+                            {userData.email}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Tooltip>
+                    
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={handleMenuClose}
+                      className="user-menu"
+                      PaperProps={{
+                        elevation: 3,
+                        sx: {
+                          overflow: 'visible',
+                          filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                          mt: 1.5,
+                          borderRadius: '12px',
+                          minWidth: 250,
+                        },
+                      }}
+                      transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                      anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                    >
+                      {/* Header del menú con info del usuario */}
+                      <Box className="user-menu-header">
+                        <Box className="user-menu-header-content">
+                          <Avatar
+                            src={userData.avatar}
+                            className="user-menu-avatar"
+                          />
+                          <Box className="user-menu-info">
+                            <Typography variant="body2">
+                              {userData.firstName} {userData.lastName}
+                            </Typography>
+                            <Typography variant="caption">
+                              {userData.email}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                      
+                      <Divider />
+                      
+                      <MenuItem onClick={handleProfileClick} className="user-menu-item">
+                        <ListItemIcon>
+                          <Person fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Mi Perfil</ListItemText>
+                      </MenuItem>
+                      
+                      <MenuItem onClick={() => { handleMenuClose(); navigate('/my-orders'); }} className="user-menu-item">
+                        <ListItemIcon>
+                          <ShoppingBag fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Mis Pedidos</ListItemText>
+                      </MenuItem>
+                      
+                      <MenuItem onClick={handleMenuClose} className="user-menu-item">
+                        <ListItemIcon>
+                          <Favorite fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Favoritos</ListItemText>
+                      </MenuItem>
+                      
+                      <MenuItem onClick={handleMenuClose} className="user-menu-item">
+                        <ListItemIcon>
+                          <Compare fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Comparar</ListItemText>
+                      </MenuItem>
+                      
+                      <MenuItem onClick={handleMenuClose} className="user-menu-item">
+                        <ListItemIcon>
+                          <Settings fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Configuración</ListItemText>
+                      </MenuItem>
+                      
+                      <Divider />
+                      
+                      <MenuItem onClick={handleLogout} className="user-menu-item logout">
+                        <ListItemIcon>
+                          <ExitToApp fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Cerrar Sesión</ListItemText>
+                      </MenuItem>
+                    </Menu>
+                  </>
+                ) : (
+                  <Tooltip title="Iniciar Sesión">
+                    <IconButton onClick={() => navigate('/login')}>
+                      <AccountCircle />
+                    </IconButton>
+                  </Tooltip>
+                )}
               </li>
             </ul>
           </div>
         </div>
       </div>
-
-      {/* Modal para Login/Register */}
-      <Modal open={modalOpen} onClose={closeModal}>
-        {successMsg ? (
-          <div className="text-center py-8 text-green-700 text-lg font-medium">{successMsg}</div>
-        ) : modalType === "login" ? (
-          <LoginForm
-            onSwitch={() => setModalType("register")}
-            onSuccess={handleAuthSuccess}
-          />
-        ) : (
-          <RegisterForm
-            onSwitch={() => setModalType("login")}
-            onSuccess={handleAuthSuccess}
-          />
-        )}
-      </Modal>
 
       {/* Navegación principal */}
       <Navegacion />

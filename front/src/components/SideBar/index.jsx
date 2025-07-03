@@ -1,17 +1,18 @@
-import React from 'react';
-import { useState } from 'react';
+// React y dependencias externas
+import React, { useState } from 'react'
+import { Collapse } from 'react-collapse'
+import RangeSlider from 'react-range-slider-input'
 
-import './estilos.css';
-import 'react-range-slider-input/dist/style.css';
+// Material-UI
+import { FormControlLabel, Checkbox, Button } from '@mui/material'
 
+// Íconos
+import { LiaAngleDownSolid } from "react-icons/lia"
+import { FaAngleUp } from "react-icons/fa6"
 
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import {Collapse} from 'react-collapse';
-import { LiaAngleDownSolid } from "react-icons/lia";
-import { FaAngleUp } from "react-icons/fa6";
-import { Button } from '@mui/material';
-import RangeSlider from 'react-range-slider-input';
+// Estilos locales
+import './estilos.css'
+import 'react-range-slider-input/dist/style.css'
 
 
 const SideBar = () => {

@@ -1,5 +1,8 @@
-import React from "react";
-import CategoryPanel from "./categoriasPanel"; // Usando tu nombre original
+// React
+import React from "react"
+
+// Componentes locales
+import CategoryPanel from "./categoriasPanel"
 
 const Navegacion = () => (
   <nav className="py-1 w-full bg-white border-b border-gray-200">

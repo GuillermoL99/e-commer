@@ -80,19 +80,22 @@ const Home = () =>{
         </section>
 
         <section className="py-4">
-          <div className="container">
-            <h2 className="text-[20px] font-[600] ">Ultimos productos</h2>
-            <ProductSlider items={5} />
-           
+          <div className='container pt-6 overflow-hidden'>
+                <h2 className="text-[20px] font-[600] pb-4">Ultimos Productos</h2>
+                <div className="mx-[-15px]">
+                  <ProductSlider items={5} />
+                </div>
           </div>
           
         </section>
          
         
         <section className="py-4">
-          <div className="container">
-            <h2 className="text-[20px] font-[600] ">Productos destacados</h2>
-            <ProductSlider items={5} />
+          <div className='container pt-6 overflow-hidden'>
+                <h2 className="text-[20px] font-[600] pb-4">Productos Destacados</h2>
+                <div className="mx-[-15px]">
+                  <ProductSlider items={5} />
+                </div>
           </div>
         </section>
         <br /> 

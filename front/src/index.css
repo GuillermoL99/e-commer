@@ -8,6 +8,8 @@ body{
     overflow-x: hidden;
 }
 
+p{font-size: 14px; line-height: 20px ;}
+
 .container{width: 95% ; margin: auto;}
 
 a:hover{color: rgba(243, 118, 1, 0.959);}
@@ -43,7 +45,13 @@ nav ul button{text-transform: capitalize !important;}
 .MuiTabs-indicator{background-color: #ff5252 !important;}
 .MuiTab-textColorPrimary.Mui-selected{color: #ff5252 !important;}
 
-.productsSlider .swiper-wrapper{padding: 15px; margin-left: 15px; margin-right: -15px;}
+.productsSlider .swiper-wrapper{padding: 15px; margin-left: 15px; margin-right: 15px;}
+.productsSlider .swiper-container{overflow: hidden; margin: 0 -15px;}
+.productsSlider .swiper-slide{padding: 0 15px; box-sizing: border-box;}
+
+/* Asegurar que los botones de navegación no se salgan */
+.productsSlider .swiper-button-prev{left: 10px !important; z-index: 10;}
+.productsSlider .swiper-button-next{right: 10px !important; z-index: 10;}
 
 .swiper-pagination-bullet-active{background: #ff5252 !important;}
 
@@ -61,7 +69,66 @@ nav ul button{text-transform: capitalize !important;}
 
 .ReactCollapse--collapse {transition: height 400ms;}
 
+/* Estilos para el modal de producto */
+.productDetailModal .MuiDialog-paper {
+    margin: 20px;
+    max-width: 1200px !important;
+}
+
+.productDetailModal .productDetailModalContainer {
+    min-height: 500px;
+    max-height: 80vh;
+}
+
+.productDetailModal .col1 {
+    border-right: 1px solid #e5e7eb;
+}
+
+.productDetailModal .col2::-webkit-scrollbar {
+    width: 6px;
+}
+
+.productDetailModal .col2::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.productDetailModal .col2::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.productDetailModal .col2::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive para el modal */
+@media (max-width: 768px) {
+    .productDetailModal .productDetailModalContainer {
+        flex-direction: column;
+    }
+    
+    .productDetailModal .col1,
+    .productDetailModal .col2 {
+        width: 100% !important;
+    }
+    
+    .productDetailModal .col1 {
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+}
 
 .ItemViewActions button.active svg{color:#ff5252 !important ; opacity: 1;}
 .MuiPaginationItem-root.Mui-selected{background: #ff5252 !important;color: #fff !important;}
 .MuiPaginationItem-page.Mui-selected{background: #ff5252 !important;color: #fff !important;}
+
+
+.zoomSwiper .swiper-slide{height: auto !important;}
+
+.productDetailModal.MuiDialogContent-root {
+    padding: 0px !important;
+}
+
+.otpBox input{border: 1px solid rgba(0, 0,0,0.7) !important; border-radius: 4px; outline: none !important;}
+.otpBox input:focus{border: 1px solid rgba(0, 0,0,0.7) !important; }
+.otpPage .container{height: 90vh; display: flex;}

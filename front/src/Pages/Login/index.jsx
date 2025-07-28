@@ -1,6 +1,10 @@
 // React y dependencias externas
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+
+// API y hooks
+import { loginUsuario, obtenerPerfil } from '../../components/api/auth'
+import { useAuth } from '../../components/hooks/useAuth'
 
 // Material-UI
 import { 
@@ -9,7 +13,9 @@ import {
   IconButton, 
   InputAdornment, 
   Divider, 
-  Chip 
+  Chip,
+  Alert,
+  CircularProgress
 } from '@mui/material'
 import { 
   Visibility, 
@@ -22,25 +28,82 @@ import {
 } from '@mui/icons-material'
 
 const Login = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { login, isAuthenticated } = useAuth();
+    
     const [showPassword, setShowPassword] = useState(false);
-    const [emailError, setEmailError] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const [FormsFields, setFormsFields] = useState({
         email: '',
         password: ''
     });
+
+    // Redirigir si ya está autenticado
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
+
+    // Mostrar mensaje de éxito si viene desde verificación
+    useEffect(() => {
+        if (location.state?.message) {
+            setSuccessMessage(location.state.message);
+            // Limpiar el mensaje después de 5 segundos
+            setTimeout(() => setSuccessMessage(''), 5000);
+        }
+    }, [location]);
 
     const handleChange = (e) => {
         setFormsFields(prev => ({
             ...prev,
             [e.target.name]: e.target.value
         }));
-        // Limpiar error del email cuando el usuario empiece a escribir
-        if (e.target.name === 'email' && emailError) {
-            setEmailError(false);
+        // Limpiar errores cuando el usuario empiece a escribir
+        if (error) {
+            setError('');
         }
     };
 
-    const history = useNavigate();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        if (!FormsFields.email.trim() || !FormsFields.password) {
+            setError('Por favor, completa todos los campos.');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+
+        try {
+            const result = await loginUsuario({
+                email: FormsFields.email,
+                password: FormsFields.password
+            });
+
+            // El login fue exitoso, ahora obtener los datos del usuario
+            console.log('Login exitoso:', result);
+            
+            // Obtener los datos del perfil del usuario
+            const userProfile = await obtenerPerfil();
+            console.log('Datos del usuario:', userProfile);
+            
+            // Actualizar el contexto de autenticación con los datos del usuario
+            login(userProfile);
+            
+            // Redirigir a la página principal
+            navigate('/', { replace: true });
+
+        } catch (error) {
+            setError(error.message || 'Error al iniciar sesión');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
     const handleMouseDownPassword = (event) => event.preventDefault();
@@ -48,11 +111,9 @@ const Login = () => {
     const forgotPassword = (e) => {
         e.preventDefault();
         if(FormsFields.email.trim() !== '') {
-            setEmailError(false);
-            history("/verify");
+            navigate("/forgot-password", { state: { email: FormsFields.email } });
         } else {
-            // Mostrar error visual en el campo email
-            setEmailError(true);
+            navigate("/forgot-password");
         }
     };
 
@@ -72,7 +133,19 @@ const Login = () => {
 
                     {/* Card principal */}
                     <div className='bg-white rounded-2xl shadow-2xl p-8 border border-gray-100 backdrop-blur-sm'>
-                        <form className='space-y-6'>
+                        {/* Mensajes de error y éxito */}
+                        {error && (
+                            <Alert severity="error" className='mb-4 !rounded-xl'>
+                                {error}
+                            </Alert>
+                        )}
+                        {successMessage && (
+                            <Alert severity="success" className='mb-4 !rounded-xl'>
+                                {successMessage}
+                            </Alert>
+                        )}
+
+                        <form onSubmit={handleSubmit} className='space-y-6'>
                             {/* Campo Email */}
                             <div className='space-y-2'>
                                 <label className='block text-sm font-semibold text-gray-700'>
@@ -86,8 +159,6 @@ const Login = () => {
                                     fullWidth
                                     value={FormsFields.email}
                                     onChange={handleChange}
-                                    error={emailError}
-                                    helperText={emailError ? "Ingresa tu correo para recuperar la contraseña" : ""}
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
@@ -99,11 +170,11 @@ const Login = () => {
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: '12px',
                                             '& fieldset': {
-                                                borderColor: emailError ? '#ff5252' : '#e5e7eb',
+                                                borderColor: '#e5e7eb',
                                                 borderWidth: '2px',
                                             },
                                             '&:hover fieldset': {
-                                                borderColor: emailError ? '#ff5252' : '#ff5252',
+                                                borderColor: '#ff5252',
                                             },
                                             '&.Mui-focused fieldset': {
                                                 borderColor: '#ff5252',
@@ -185,6 +256,7 @@ const Login = () => {
                                 variant="contained"
                                 fullWidth
                                 size="large"
+                                disabled={loading}
                                 sx={{
                                     background: 'linear-gradient(135deg, #ff5252 0%, #ff8a80 100%)',
                                     borderRadius: '12px',
@@ -201,7 +273,14 @@ const Login = () => {
                                     transition: 'all 0.3s ease',
                                 }}
                             >
-                                Iniciar Sesión
+                                {loading ? (
+                                    <>
+                                        <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                                        Iniciando sesión...
+                                    </>
+                                ) : (
+                                    "Iniciar Sesión"
+                                )}
                             </Button>
 
                             

@@ -2,6 +2,13 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+// Contexto de autenticación
+import { useAuth } from '../../components/hooks/useAuth'
+
+// API
+import { actualizarPerfil } from '../../components/api/auth'
+import { crearDireccion, obtenerDirecciones, actualizarDireccion, eliminarDireccion } from '../../components/api/addresses'
+
 // Estilos
 import './styles.css'
 
@@ -30,7 +37,11 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material'
 
 // Íconos
@@ -56,11 +67,23 @@ import {
   ExpandMore,
   CheckCircle,
   AccessTime,
-  LocalOffer
+  LocalOffer,
+  Add,
+  Delete,
+  Home,
+  Work
 } from '@mui/icons-material'
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated, refreshUser } = useAuth();
+  
+  // Redirigir si no está autenticado
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
   
   // Estados del perfil
   const [isEditing, setIsEditing] = useState(false);
@@ -69,17 +92,59 @@ const Profile = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Datos del usuario
-  const [userInfo, setUserInfo] = useState({
-    firstName: 'Juan Carlos',
-    lastName: 'Rodríguez',
-    email: 'juan.rodriguez@email.com',
-    phone: '+57 301 234 5678',
-    birthDate: '1990-03-15',
-    gender: 'Masculino',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+  // Estados para direcciones
+  const [addresses, setAddresses] = useState([]);
+  const [showAddressDialog, setShowAddressDialog] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
+  const [addressFormData, setAddressFormData] = useState({
+    address_line: '',
+    city: '',
+    country: '',
+    state: '',
+    pincode: '',
+    address_type: 'casa'
   });
+
+  // Datos del usuario - usando datos reales del contexto de autenticación
+  const [userInfo, setUserInfo] = useState({
+    firstName: user?.name?.split(' ')[0] || 'Nombre',
+    lastName: user?.name?.split(' ').slice(1).join(' ') || 'Apellido',
+    email: user?.email || 'email@ejemplo.com',
+    phone: user?.mobile?.toString() || '',
+    avatar: user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+  });
+
+  // Actualizar datos cuando cambie el usuario
+  React.useEffect(() => {
+    if (user) {
+      setUserInfo({
+        firstName: user.name?.split(' ')[0] || 'Nombre',
+        lastName: user.name?.split(' ').slice(1).join(' ') || 'Apellido',
+        email: user.email || 'email@ejemplo.com',
+        phone: user.mobile?.toString() || '',
+        avatar: user.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+      });
+    }
+  }, [user]);
+
+  // Cargar direcciones cuando se seleccione la pestaña de direcciones
+  React.useEffect(() => {
+    if (activeTab === 'addresses' && isAuthenticated) {
+      loadAddresses();
+    }
+  }, [activeTab, isAuthenticated]);
+
+  const loadAddresses = async () => {
+    try {
+      const userAddresses = await obtenerDirecciones();
+      setAddresses(userAddresses || []);
+    } catch (error) {
+      console.error('Error al cargar direcciones:', error);
+      setErrorMessage('Error al cargar las direcciones');
+    }
+  };
 
   const [addressInfo, setAddressInfo] = useState({
     address: 'Calle 123 # 45-67',
@@ -133,6 +198,11 @@ const Profile = () => {
   ];
 
   const handleInputChange = (section, field, value) => {
+    // Limpiar mensajes de error cuando el usuario empiece a editar
+    if (errorMessage) {
+      setErrorMessage('');
+    }
+    
     if (section === 'user') {
       setUserInfo(prev => ({ ...prev, [field]: value }));
     } else if (section === 'address') {
@@ -142,16 +212,55 @@ const Profile = () => {
     }
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     setIsLoading(true);
+    setErrorMessage(''); // Limpiar errores previos
     
-    // Simular guardado
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsEditing(false);
+    try {
+      // Validaciones básicas
+      if (!userInfo.firstName.trim() || !userInfo.lastName.trim()) {
+        throw new Error('El nombre y apellido son obligatorios');
+      }
+      
+      // Preparar los datos para enviar al backend
+      const datosActualizar = {
+        name: `${userInfo.firstName} ${userInfo.lastName}`.trim(),
+        mobile: userInfo.phone ? parseInt(userInfo.phone.replace(/\D/g, '')) || null : null // Convertir a número y limpiar caracteres no numéricos
+      };
+
+      // Llamar a la API para actualizar el perfil
+      const result = await actualizarPerfil(user._id, datosActualizar);
+      
+      console.log('Perfil actualizado:', result);
+
       setSuccessMessage('Perfil actualizado exitosamente');
-      setTimeout(() => setSuccessMessage(''), 3000);
-    }, 1500);
+
+      // Actualizar los datos del usuario en el contexto
+      const updatedUser = await refreshUser();
+      console.log('Datos del usuario actualizados:', updatedUser);
+
+      // También actualizar el estado local inmediatamente con los datos actualizados
+      if (result.data) {
+        setUserInfo({
+          firstName: result.data.name?.split(' ')[0] || 'Nombre',
+          lastName: result.data.name?.split(' ').slice(1).join(' ') || 'Apellido',
+          email: result.data.email || 'email@ejemplo.com',
+          phone: result.data.mobile?.toString() || '',
+          avatar: result.data.avatar || userInfo.avatar
+        });
+      }
+      
+      setIsEditing(false);
+      setTimeout(() => setSuccessMessage(''), 5000);
+      
+    } catch (error) {
+      console.error('Error al actualizar perfil:', error);
+      setSuccessMessage(''); // Limpiar mensaje de éxito si hay error
+      setErrorMessage(error.message || 'Error al actualizar el perfil');
+      setTimeout(() => setErrorMessage(''), 5000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChangePassword = () => {
@@ -176,6 +285,105 @@ const Profile = () => {
     navigate('/login');
   };
 
+  // Funciones para manejar direcciones
+  const handleAddressInputChange = (field, value) => {
+    setAddressFormData(prev => ({ ...prev, [field]: value }));
+    if (errorMessage) {
+      setErrorMessage('');
+    }
+  };
+
+  const handleOpenAddressDialog = (address = null) => {
+    if (address) {
+      // Modo edición
+      setEditingAddress(address);
+      setAddressFormData({
+        address_line: address.address_line || '',
+        city: address.city || '',
+        country: address.country || '',
+        state: address.state || '',
+        pincode: address.pincode || '',
+        address_type: address.address_type || 'casa'
+      });
+    } else {
+      // Modo creación
+      setEditingAddress(null);
+      setAddressFormData({
+        address_line: '',
+        city: '',
+        country: '',
+        state: '',
+        pincode: '',
+        address_type: 'casa'
+      });
+    }
+    setShowAddressDialog(true);
+  };
+
+  const handleCloseAddressDialog = () => {
+    setShowAddressDialog(false);
+    setEditingAddress(null);
+    setAddressFormData({
+      address_line: '',
+      city: '',
+      country: '',
+      state: '',
+      pincode: '',
+      address_type: 'casa'
+    });
+  };
+
+  const handleSaveAddress = async () => {
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      // Validaciones
+      if (!addressFormData.address_line.trim() || !addressFormData.city.trim() || 
+          !addressFormData.country.trim() || !addressFormData.state.trim() || 
+          !addressFormData.pincode.trim()) {
+        throw new Error('Todos los campos son obligatorios');
+      }
+
+      if (editingAddress) {
+        // Actualizar dirección existente
+        await actualizarDireccion(editingAddress._id, addressFormData);
+        setSuccessMessage('Dirección actualizada correctamente');
+      } else {
+        // Crear nueva dirección
+        await crearDireccion(addressFormData);
+        setSuccessMessage('Dirección agregada correctamente');
+      }
+
+      // Recargar las direcciones
+      await loadAddresses();
+      handleCloseAddressDialog();
+      setTimeout(() => setSuccessMessage(''), 3000);
+
+    } catch (error) {
+      console.error('Error al guardar dirección:', error);
+      setErrorMessage(error.message || 'Error al guardar la dirección');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAddress = async (addressId) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar esta dirección?')) {
+      return;
+    }
+
+    try {
+      await eliminarDireccion(addressId);
+      setSuccessMessage('Dirección eliminada correctamente');
+      await loadAddresses();
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Error al eliminar dirección:', error);
+      setErrorMessage(error.message || 'Error al eliminar la dirección');
+    }
+  };
+
   return (
     <section className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4'>
       <div className='container mx-auto max-w-7xl'>
@@ -193,6 +401,17 @@ const Profile = () => {
             onClose={() => setSuccessMessage('')}
           >
             {successMessage}
+          </Alert>
+        )}
+
+        {/* Mensaje de error */}
+        {errorMessage && (
+          <Alert 
+            severity="error" 
+            sx={{ mb: 3, borderRadius: '12px' }}
+            onClose={() => setErrorMessage('')}
+          >
+            {errorMessage}
           </Alert>
         )}
 
@@ -380,9 +599,10 @@ const Profile = () => {
                         label="Correo Electrónico"
                         value={userInfo.email}
                         onChange={(e) => handleInputChange('user', 'email', e.target.value)}
-                        disabled={!isEditing}
+                        disabled={true} // Siempre deshabilitado
                         type="email"
                         fullWidth
+                        helperText={isEditing ? "El correo electrónico no se puede modificar" : ""}
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: '12px',
@@ -394,34 +614,6 @@ const Profile = () => {
                         label="Teléfono"
                         value={userInfo.phone}
                         onChange={(e) => handleInputChange('user', 'phone', e.target.value)}
-                        disabled={!isEditing}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: '12px',
-                          }
-                        }}
-                      />
-
-                      <TextField
-                        label="Fecha de Nacimiento"
-                        value={userInfo.birthDate}
-                        onChange={(e) => handleInputChange('user', 'birthDate', e.target.value)}
-                        disabled={!isEditing}
-                        type="date"
-                        fullWidth
-                        InputLabelProps={{ shrink: true }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: '12px',
-                          }
-                        }}
-                      />
-
-                      <TextField
-                        label="Género"
-                        value={userInfo.gender}
-                        onChange={(e) => handleInputChange('user', 'gender', e.target.value)}
                         disabled={!isEditing}
                         fullWidth
                         sx={{
@@ -525,6 +717,8 @@ const Profile = () => {
                     <div className='flex justify-between items-center mb-6'>
                       <h2 className='text-2xl font-bold text-gray-800'>Direcciones</h2>
                       <Button
+                        startIcon={<Add />}
+                        onClick={() => handleOpenAddressDialog()}
                         variant="contained"
                         sx={{
                           background: 'linear-gradient(135deg, #ff5252 0%, #ff8a80 100%)',
@@ -539,25 +733,93 @@ const Profile = () => {
                       </Button>
                     </div>
 
-                    <Card className='border border-gray-200'>
-                      <CardContent className='p-6'>
-                        <div className='flex justify-between items-start mb-4'>
-                          <div>
-                            <h3 className='text-lg font-semibold text-gray-800 mb-2'>Dirección Principal</h3>
-                            <Chip label="Predeterminada" color="primary" size="small" sx={{ borderRadius: '8px' }} />
-                          </div>
-                          <IconButton>
-                            <Edit />
-                          </IconButton>
-                        </div>
-                        <div className='text-gray-600 space-y-1'>
-                          <p>{addressInfo.address}</p>
-                          <p>{addressInfo.city}, {addressInfo.state}</p>
-                          <p>{addressInfo.zipCode}</p>
-                          <p>{addressInfo.country}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    {addresses.length === 0 ? (
+                      <div className='text-center py-12'>
+                        <LocationOn sx={{ fontSize: 64, color: '#d1d5db', mb: 2 }} />
+                        <h3 className='text-xl font-semibold text-gray-600 mb-2'>No tienes direcciones guardadas</h3>
+                        <p className='text-gray-500 mb-4'>Agrega una dirección para facilitar tus compras</p>
+                        <Button
+                          startIcon={<Add />}
+                          onClick={() => handleOpenAddressDialog()}
+                          variant="outlined"
+                          sx={{
+                            borderColor: '#ff5252',
+                            color: '#ff5252',
+                            borderRadius: '12px',
+                            textTransform: 'none',
+                            '&:hover': {
+                              borderColor: '#e04848',
+                              backgroundColor: '#fff5f5'
+                            }
+                          }}
+                        >
+                          Agregar Primera Dirección
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className='space-y-4'>
+                        {addresses.map((address, index) => (
+                          <Card key={address._id} className='border border-gray-200 hover:shadow-lg transition-shadow'>
+                            <CardContent className='p-6'>
+                              <div className='flex justify-between items-start'>
+                                <div className='flex-1'>
+                                  <div className='flex items-center gap-3 mb-2'>
+                                    <div className='flex items-center gap-2'>
+                                      {address.address_type === 'casa' ? 
+                                        <Home sx={{ color: '#ff5252' }} /> : 
+                                        <Work sx={{ color: '#ff5252' }} />
+                                      }
+                                      <h3 className='text-lg font-semibold text-gray-800 capitalize'>
+                                        {address.address_type}
+                                      </h3>
+                                    </div>
+                                    {index === 0 && (
+                                      <Chip 
+                                        label="Principal" 
+                                        color="primary" 
+                                        size="small" 
+                                        sx={{ borderRadius: '8px' }} 
+                                      />
+                                    )}
+                                  </div>
+                                  <div className='text-gray-600 space-y-1'>
+                                    <p className='font-medium'>{address.address_line}</p>
+                                    <p>{address.state}, {address.country}</p>
+                                    <p>Código Postal: {address.pincode}</p>
+                                  </div>
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                  <IconButton
+                                    onClick={() => handleOpenAddressDialog(address)}
+                                    sx={{
+                                      color: '#6b7280',
+                                      '&:hover': {
+                                        color: '#ff5252',
+                                        backgroundColor: '#fff5f5'
+                                      }
+                                    }}
+                                  >
+                                    <Edit />
+                                  </IconButton>
+                                  <IconButton
+                                    onClick={() => handleDeleteAddress(address._id)}
+                                    sx={{
+                                      color: '#6b7280',
+                                      '&:hover': {
+                                        color: '#dc2626',
+                                        backgroundColor: '#fef2f2'
+                                      }
+                                    }}
+                                  >
+                                    <Delete />
+                                  </IconButton>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -696,6 +958,148 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Dialog para agregar/editar dirección */}
+      <Dialog 
+        open={showAddressDialog} 
+        onClose={handleCloseAddressDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          style: { borderRadius: '16px' }
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+            {editingAddress ? 'Editar Dirección' : 'Agregar Nueva Dirección'}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <div className='space-y-6 mt-4'>
+            <TextField
+              label="Dirección"
+              value={addressFormData.address_line}
+              onChange={(e) => handleAddressInputChange('address_line', e.target.value)}
+              fullWidth
+              multiline
+              rows={2}
+              placeholder="Calle, número, apartamento, etc."
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                },
+                mb: 4 // Agregar más margen inferior al campo de dirección
+              }}
+            />
+            
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <TextField
+                label="País"
+                value={addressFormData.country}
+                onChange={(e) => handleAddressInputChange('country', e.target.value)}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                  }
+                }}
+              />
+              
+              <TextField
+                label="Ciudad"
+                value={addressFormData.city}
+                onChange={(e) => handleAddressInputChange('city', e.target.value)}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                  }
+                }}
+              />
+            </div>
+
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-6'>
+              <TextField
+                label="Provincia"
+                value={addressFormData.state}
+                onChange={(e) => handleAddressInputChange('state', e.target.value)}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                  }
+                }}
+              />
+              
+              <TextField
+                label="Código Postal"
+                value={addressFormData.pincode}
+                onChange={(e) => handleAddressInputChange('pincode', e.target.value)}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                  }
+                }}
+              />
+            </div>
+
+            <div className='mt-6'>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de Dirección</InputLabel>
+                <Select
+                  value={addressFormData.address_type}
+                  onChange={(e) => handleAddressInputChange('address_type', e.target.value)}
+                  label="Tipo de Dirección"
+                  sx={{
+                    borderRadius: '12px',
+                  }}
+                >
+                  <MenuItem value="casa">
+                    <div className='flex items-center gap-2'>
+                      <Home />
+                      <span>Casa</span>
+                    </div>
+                  </MenuItem>
+                  <MenuItem value="trabajo">
+                    <div className='flex items-center gap-2'>
+                      <Work />
+                      <span>Trabajo</span>
+                    </div>
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+          </div>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button 
+            onClick={handleCloseAddressDialog}
+            sx={{ 
+              color: '#6b7280',
+              textTransform: 'none',
+              borderRadius: '12px'
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleSaveAddress}
+            disabled={isLoading || !addressFormData.address_line.trim() || !addressFormData.city.trim() || !addressFormData.country.trim() || !addressFormData.state.trim() || !addressFormData.pincode.trim()}
+            variant="contained"
+            sx={{
+              background: 'linear-gradient(135deg, #ff5252 0%, #ff8a80 100%)',
+              borderRadius: '12px',
+              textTransform: 'none',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #e04848 0%, #ff6f6f 100%)',
+              }
+            }}
+          >
+            {isLoading ? 'Guardando...' : (editingAddress ? 'Actualizar' : 'Guardar')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Dialog para cambiar contraseña */}
       <Dialog 

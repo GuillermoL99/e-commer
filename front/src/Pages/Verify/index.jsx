@@ -1,27 +1,72 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, Typography } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Button, Typography, Alert, CircularProgress } from '@mui/material';
 import { CheckCircle, Email, ArrowBack } from '@mui/icons-material';
 import OtpBox from '../../components/OtpBox';
+import { verificarEmail } from '../../components/api/auth';
 
 const Verify = () => {
     const [otp, setOtp] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Obtener el email desde el state o localStorage
+    const [email, setEmail] = useState('');
+    
+    useEffect(() => {
+        const emailFromState = location.state?.email;
+        const emailFromStorage = localStorage.getItem('pendingVerification');
+        
+        if (emailFromState) {
+            setEmail(emailFromState);
+        } else if (emailFromStorage) {
+            setEmail(emailFromStorage);
+        } else {
+            // Si no hay email, redirigir al registro
+            navigate('/register');
+        }
+    }, [location, navigate]);
     
     const handleOtpChange = (value) => {
-        setOtp(value); 
+        setOtp(value);
+        setError(''); // Limpiar errores al cambiar OTP
     };
 
     const handleVerify = async () => {
-        if (otp.length === 6) {
+        if (otp.length === 6 && email) {
             setIsVerifying(true);
-            // Simular verificación
-            setTimeout(() => {
+            setError('');
+            
+            try {
+                const result = await verificarEmail({
+                    email: email,
+                    otp: otp
+                });
+                
+                setSuccess(true);
+                
+                // Limpiar datos de verificación pendiente
+                localStorage.removeItem('pendingVerification');
+                
+                // Redirigir al login después de 2 segundos
+                setTimeout(() => {
+                    navigate('/login', { 
+                        state: { 
+                            message: 'Cuenta verificada exitosamente. Ya puedes iniciar sesión.' 
+                        } 
+                    });
+                }, 2000);
+                
+            } catch (error) {
+                setError(error.message || 'Error al verificar el código');
+            } finally {
                 setIsVerifying(false);
-                // Redirigir a forgot-password después de verificar el OTP
-                navigate('/forgot-password');
-            }, 2000);
+            }
+        } else {
+            setError('Por favor, ingresa el código de 6 dígitos completo');
         }
     };
 
@@ -38,7 +83,7 @@ const Verify = () => {
                 <div className='mb-6'>
                     <Button
                         startIcon={<ArrowBack />}
-                        onClick={() => navigate('/login')}
+                        onClick={() => navigate('/register')}
                         sx={{
                             color: '#6b7280',
                             textTransform: 'none',
@@ -48,12 +93,24 @@ const Verify = () => {
                             }
                         }}
                     >
-                        Regresar al Login
+                        Volver al registro
                     </Button>
                 </div>
 
                 {/* Card principal */}
                 <div className='bg-white rounded-2xl shadow-2xl p-8 border border-gray-100 backdrop-blur-sm'>
+                    {/* Mensajes de error y éxito */}
+                    {error && (
+                        <Alert severity="error" className='mb-4 !rounded-xl'>
+                            {error}
+                        </Alert>
+                    )}
+                    {success && (
+                        <Alert severity="success" className='mb-4 !rounded-xl'>
+                            ¡Verificación exitosa! Redirigiendo al login...
+                        </Alert>
+                    )}
+
                     {/* Header con logo */}
                     <div className='text-center mb-8'>
                         <div className='w-20 h-20 bg-gradient-to-r from-[#ff5252] to-[#ff8a80] rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300'>
@@ -61,9 +118,9 @@ const Verify = () => {
                         </div>
                         <h1 className='text-2xl font-bold text-gray-800 mb-3'>Verifica tu Código</h1>
                         <p className='text-gray-600 leading-relaxed'>
-                            Hemos enviado un código de 6 dígitos a tu correo electrónico.
+                            Hemos enviado un código de 6 dígitos a:
                             <br />
-                            <span className='text-[#ff5252] font-medium'>Después de verificarlo podrás crear una nueva contraseña.</span>
+                            <span className='text-[#ff5252] font-medium'>{email}</span>
                         </p>
                     </div>
 
@@ -79,7 +136,7 @@ const Verify = () => {
                         variant="contained"
                         fullWidth
                         size="large"
-                        startIcon={isVerifying ? null : <CheckCircle />}
+                        startIcon={isVerifying ? <CircularProgress size={20} color="inherit" /> : <CheckCircle />}
                         sx={{
                             background: otp.length === 6 ? 'linear-gradient(135deg, #ff5252 0%, #ff8a80 100%)' : '#e5e7eb',
                             borderRadius: '12px',
@@ -135,11 +192,11 @@ const Verify = () => {
                                     <span className='text-blue-600 text-xs font-bold'>i</span>
                                 </div>
                                 <div>
-                                    <p className='text-sm text-blue-800 font-medium mb-1'>Proceso de recuperación:</p>
+                                    <p className='text-sm text-blue-800 font-medium mb-1'>Proceso de verificación:</p>
                                     <ul className='text-xs text-blue-700 space-y-1'>
                                         <li>• Revisa tu carpeta de spam</li>
                                         <li>• El código expira en 10 minutos</li>
-                                        <li>• Después podrás crear tu nueva contraseña</li>
+                                        <li>• Después podrás iniciar sesión</li>
                                     </ul>
                                 </div>
                             </div>

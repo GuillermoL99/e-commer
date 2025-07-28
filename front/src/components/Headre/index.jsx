@@ -2,6 +2,9 @@
 import React, { useContext, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
+// Contexto de autenticación
+import { useAuth } from "../hooks/useAuth"
+
 // Estilos
 import './styles.css'
 
@@ -17,7 +20,9 @@ import {
   ListItemText,
   Divider,
   Typography,
-  Box
+  Box,
+  Button,
+  CircularProgress
 } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart"
@@ -50,16 +55,9 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 const Header = () => {
   const context = useContext(MyContext);
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout, loading } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Estado simulado de login
-  
-  // Datos simulados del usuario
-  const userData = {
-    firstName: 'Juan Carlos',
-    lastName: 'Rodríguez',
-    email: 'juan.rodriguez@email.com',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face'
-  };
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -69,10 +67,20 @@ const Header = () => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    handleMenuClose();
-    navigate('/login');
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      handleMenuClose();
+      navigate('/'); // Redirigir a la landing page en lugar de login
+    } catch (error) {
+      console.error('Error durante logout:', error);
+      // Navegar de todas formas ya que el logout local se ejecuta
+      handleMenuClose();
+      navigate('/'); // Redirigir a la landing page en lugar de login
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleProfileClick = () => {
@@ -120,43 +128,13 @@ const Header = () => {
           </div>
           {/* Iconos & Login/Register */}
           <div className="col3 w-full md:w-[40%] flex items-center justify-center md:justify-end pl-0 md:pl-6">
-            <ul className={`flex items-center flex-wrap justify-center header-actions ${isLoggedIn ? 'logged-in' : ''}`}>
-              {/* Login/Register - Solo si no está logueado */}
-              {!isLoggedIn && (
-                <li className="auth-links">
-                  <Link
-                    to="/login"
-                    className="link transition color-red text-xs md:text-base font-medium hover:text-[#ff5252]"
-                  >
-                    Login
-                  </Link>
-                  <span className="text-gray-400"> | </span>
-                  <Link
-                    to="/register"
-                    className="link transition color-red text-xs md:text-base font-medium hover:text-[#ff5252]"
-                  >
-                    Register
-                  </Link>
-                </li>
-              )}
-              
-              <li>
-                <Tooltip title="Carrito">
-                  <IconButton 
-                    aria-label="cart" 
-                    onClick={()=>context.setOpenCarritoPanel(true)}
-                    className="cart-button"
-                  >
-                    <StyledBadge badgeContent={1} color="secondary">
-                      <ShoppingCartIcon />
-                    </StyledBadge>
-                  </IconButton>
-                </Tooltip>
-              </li>
+            <ul className={`flex items-center flex-wrap justify-center header-actions ${isAuthenticated ? 'logged-in' : ''}`}>
               
               {/* Menú de usuario */}
               <li>
-                {isLoggedIn ? (
+                {loading ? (
+                  <CircularProgress size={24} />
+                ) : isAuthenticated ? (
                   <>
                     <Tooltip title="Mi Perfil">
                       <Box 
@@ -164,15 +142,17 @@ const Header = () => {
                         className="user-profile-section"
                       >
                         <Avatar
-                          src={userData.avatar}
+                          src={user?.avatar || '/default-avatar.png'}
                           className="user-avatar"
-                        />
+                        >
+                          {!user?.avatar && user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                        </Avatar>
                         <Box className="user-info">
                           <Typography className="user-name">
-                            {userData.firstName} {userData.lastName}
+                            {user?.name || 'Usuario'}
                           </Typography>
                           <Typography className="user-email">
-                            {userData.email}
+                            {user?.email || 'email@ejemplo.com'}
                           </Typography>
                         </Box>
                       </Box>
@@ -200,15 +180,17 @@ const Header = () => {
                       <Box className="user-menu-header">
                         <Box className="user-menu-header-content">
                           <Avatar
-                            src={userData.avatar}
+                            src={user?.avatar || '/default-avatar.png'}
                             className="user-menu-avatar"
-                          />
+                          >
+                            {!user?.avatar && user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                          </Avatar>
                           <Box className="user-menu-info">
                             <Typography variant="body2">
-                              {userData.firstName} {userData.lastName}
+                              {user?.name || 'Usuario'}
                             </Typography>
                             <Typography variant="caption">
-                              {userData.email}
+                              {user?.email || 'email@ejemplo.com'}
                             </Typography>
                           </Box>
                         </Box>
@@ -253,21 +235,78 @@ const Header = () => {
                       
                       <Divider />
                       
-                      <MenuItem onClick={handleLogout} className="user-menu-item logout">
+                      <MenuItem onClick={handleLogout} disabled={isLoggingOut} className="user-menu-item logout">
                         <ListItemIcon>
-                          <ExitToApp fontSize="small" />
+                          {isLoggingOut ? (
+                            <CircularProgress size={16} />
+                          ) : (
+                            <ExitToApp fontSize="small" />
+                          )}
                         </ListItemIcon>
-                        <ListItemText>Cerrar Sesión</ListItemText>
+                        <ListItemText>
+                          {isLoggingOut ? 'Cerrando sesión...' : 'Cerrar Sesión'}
+                        </ListItemText>
                       </MenuItem>
                     </Menu>
                   </>
                 ) : (
-                  <Tooltip title="Iniciar Sesión">
-                    <IconButton onClick={() => navigate('/login')}>
-                      <AccountCircle />
-                    </IconButton>
-                  </Tooltip>
+                  // Botones para usuarios no autenticados
+                  <div className="flex items-center gap-2">
+                    <Link to="/login">
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          borderColor: '#ff5252',
+                          color: '#ff5252',
+                          borderRadius: '8px',
+                          textTransform: 'none',
+                          fontSize: '12px',
+                          padding: '4px 12px',
+                          '&:hover': {
+                            borderColor: '#e04848',
+                            backgroundColor: 'rgba(255, 82, 82, 0.05)',
+                          }
+                        }}
+                      >
+                        Iniciar Sesión
+                      </Button>
+                    </Link>
+                    <Link to="/register">
+                      <Button
+                        variant="contained"
+                        size="small"
+                        sx={{
+                          backgroundColor: '#ff5252',
+                          borderRadius: '8px',
+                          textTransform: 'none',
+                          fontSize: '12px',
+                          padding: '4px 12px',
+                          '&:hover': {
+                            backgroundColor: '#e04848',
+                          }
+                        }}
+                      >
+                        Registrarse
+                      </Button>
+                    </Link>
+                  </div>
                 )}
+              </li>
+              
+              {/* Carrito - siempre al final */}
+              <li>
+                <Tooltip title="Carrito">
+                  <IconButton 
+                    aria-label="cart" 
+                    onClick={()=>context.setOpenCarritoPanel(true)}
+                    className="cart-button"
+                  >
+                    <StyledBadge badgeContent={1} color="secondary">
+                      <ShoppingCartIcon />
+                    </StyledBadge>
+                  </IconButton>
+                </Tooltip>
               </li>
             </ul>
           </div>

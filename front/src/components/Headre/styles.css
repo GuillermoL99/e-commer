@@ -35,7 +35,8 @@
 }
 
 .user-info {
-  display: none;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
 
@@ -141,9 +142,13 @@
 }
 
 /* Responsive */
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .user-info {
     display: block;
+  }
+  
+  .user-profile-section {
+    padding: 8px 16px;
   }
 }
 

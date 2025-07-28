@@ -2,6 +2,9 @@
 import React, { useState, createContext } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
+// Contexto de autenticación
+import { AuthProvider } from './components/hooks/useAuth'
+
 // Material-UI
 import { 
   Button, 
@@ -63,9 +66,10 @@ function App() {
   return (
     <>
     <BrowserRouter>
-      <MyContext.Provider value={values}>
-      <Header />
-      <Routes>
+      <AuthProvider>
+        <MyContext.Provider value={values}>
+        <Header />
+        <Routes>
         <Route path={"/"} exact={true} element={<Home/>} />
         <Route path={"/product-listing"} exact={true} element={<ProductListing/>} />
         <Route path={"/product/:id"} exact={true} element={<ProductDetails/>} />
@@ -139,6 +143,7 @@ function App() {
       </Drawer>
 
       </MyContext.Provider>
+      </AuthProvider>
     </BrowserRouter>
     </>
   )

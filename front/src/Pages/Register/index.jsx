@@ -1,6 +1,9 @@
 // React y dependencias externas
 import React, { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+
+// API
+import { registrarUsuario } from "../../components/api/auth"
 
 // Material-UI
 import { 
@@ -10,7 +13,8 @@ import {
   InputAdornment, 
   Divider, 
   Chip, 
-  Alert 
+  Alert,
+  CircularProgress
 } from '@mui/material'
 import { 
   Visibility, 
@@ -24,49 +28,70 @@ import {
 } from '@mui/icons-material'
 
 const Register = () => {
+    const navigate = useNavigate();
     const [form, setForm] = useState({
         name: "",
         email: "",
         password: "",
-        confirmPassword: "",
     });
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
         setError("");
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (
             !form.name.trim() ||
             !form.email.trim() ||
-            !form.password ||
-            !form.confirmPassword
+            !form.password
         ) {
             setError("Por favor, completa todos los campos.");
             return;
         }
-        if (form.password !== form.confirmPassword) {
-            setError("Las contraseñas no coinciden.");
+        if (form.password.length < 6) {
+            setError("La contraseña debe tener al menos 6 caracteres.");
             return;
         }
-        // Aquí iría la lógica de registro (API)
-        setSuccess(true);
-        setForm({
-            name: "",
-            email: "",
-            password: "",
-            confirmPassword: "",
-        });
+
+        setLoading(true);
+        setError("");
+        
+        try {
+            const result = await registrarUsuario({
+                name: form.name,
+                email: form.email,
+                password: form.password
+            });
+
+            setSuccess(true);
+            setForm({
+                name: "",
+                email: "",
+                password: "",
+            });
+
+            // Guardar el email para la verificación
+            localStorage.setItem("pendingVerification", form.email);
+            
+            // Redirigir después de 2 segundos
+            setTimeout(() => {
+                navigate("/verify", { state: { email: form.email } });
+            }, 2000);
+
+        } catch (error) {
+            setError(error.message || "Error al registrar usuario");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
-    const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
     const handleMouseDownPassword = (event) => event.preventDefault();
 
     return (
@@ -92,7 +117,7 @@ const Register = () => {
                         )}
                         {success && (
                             <Alert severity="success" className='mb-4 !rounded-xl'>
-                                ¡Registro exitoso! <Link to="/login" className='text-green-700 font-semibold underline'>Inicia sesión</Link>
+                                ¡Registro exitoso! Revisa tu correo electrónico para verificar tu cuenta. Serás redirigido en breve...
                             </Alert>
                         )}
 
@@ -235,6 +260,7 @@ const Register = () => {
                                 variant="contained"
                                 fullWidth
                                 size="large"
+                                disabled={loading}
                                 sx={{
                                     background: 'linear-gradient(135deg, #ff5252 0%, #ff8a80 100%)',
                                     borderRadius: '12px',
@@ -251,7 +277,14 @@ const Register = () => {
                                     transition: 'all 0.3s ease',
                                 }}
                             >
-                                Crear Cuenta
+                                {loading ? (
+                                    <>
+                                        <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                                        Creando cuenta...
+                                    </>
+                                ) : (
+                                    "Crear Cuenta"
+                                )}
                             </Button>
 
                             

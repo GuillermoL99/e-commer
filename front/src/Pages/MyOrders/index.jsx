@@ -1,5 +1,5 @@
 // React y dependencias externas
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 // Material-UI
@@ -38,6 +38,9 @@ import {
   ArrowBack
 } from '@mui/icons-material'
 
+// API functions (uncomment when backend is ready)
+// import { fetchUserOrders } from '../../components/api/orders';
+
 const MyOrders = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,96 +48,144 @@ const MyOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Datos simulados de pedidos más completos
-  const allOrders = [
-    {
-      id: '#ORD-001234',
-      date: '2024-12-15',
-      status: 'Entregado',
-      total: 89.99,
-      items: [
+  // Función para obtener las órdenes del usuario
+  const fetchUserOrders = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Uncomment this when your backend is ready:
+      // const ordersData = await fetchUserOrders();
+      // setOrders(ordersData);
+      
+      // Datos simulados basados en el esquema de la base de datos
+      // Remove this simulation when connecting to real API
+      const simulatedOrders = [
         {
-          name: 'Men Opaque Casual Shirt',
-          price: 45.00,
-          quantity: 1,
-          image: 'https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg'
+          _id: '675a1b2c3d4e5f6789012345',
+          orderId: 'ORD-001234',
+          userId: '675a1b2c3d4e5f6789012340',
+          productId: '675a1b2c3d4e5f6789012341',
+          product_details: {
+            name: 'Men Opaque Casual Shirt',
+            Image: [
+              'https://serviceapi.spicezgold.com/download/1742463096956_hbhb2.jpg',
+              'https://serviceapi.spicezgold.com/download/1742463096955_hbhb1.jpg'
+            ]
+          },
+          paymentId: 'PAY-123456789',
+          payment_status: 'completed',
+          delivery_address: {
+            _id: '675a1b2c3d4e5f6789012342',
+            street: 'Calle 123 # 45-67',
+            city: 'Bogotá',
+            state: 'Cundinamarca',
+            country: 'Colombia',
+            postalCode: '110111'
+          },
+          subTotalAmt: 45.00,
+          totalAmt: 45.00,
+          invoice_receipt: 'INV-001234',
+          createdAt: '2024-12-15T10:30:00Z',
+          updatedAt: '2024-12-15T10:30:00Z'
         },
         {
-          name: 'Premium Cotton T-Shirt',
-          price: 44.99,
-          quantity: 1,
-          image: 'https://serviceapi.spicezgold.com/download/1742463096955_hbhb1.jpg'
-        }
-      ],
-      statusColor: 'success',
-      trackingNumber: 'TRK123456789',
-      estimatedDelivery: '2024-12-16',
-      shippingAddress: 'Calle 123 # 45-67, Bogotá, Colombia'
-    },
-    {
-      id: '#ORD-001235',
-      date: '2024-12-10',
-      status: 'En Tránsito',
-      total: 156.50,
-      items: [
-        {
-          name: 'Wireless Headphones',
-          price: 89.99,
-          quantity: 1,
-          image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop'
+          _id: '675a1b2c3d4e5f6789012346',
+          orderId: 'ORD-001235',
+          userId: '675a1b2c3d4e5f6789012340',
+          productId: '675a1b2c3d4e5f6789012343',
+          product_details: {
+            name: 'Wireless Headphones',
+            Image: [
+              'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'
+            ]
+          },
+          paymentId: 'PAY-987654321',
+          payment_status: 'pending',
+          delivery_address: {
+            _id: '675a1b2c3d4e5f6789012344',
+            street: 'Carrera 15 # 93-07',
+            city: 'Bogotá',
+            state: 'Cundinamarca',
+            country: 'Colombia',
+            postalCode: '110221'
+          },
+          subTotalAmt: 89.99,
+          totalAmt: 89.99,
+          invoice_receipt: 'INV-001235',
+          createdAt: '2024-12-10T14:15:00Z',
+          updatedAt: '2024-12-10T14:15:00Z'
         },
         {
-          name: 'Phone Case',
-          price: 25.50,
-          quantity: 1,
-          image: 'https://images.unsplash.com/photo-1601593346740-925612772716?w=100&h=100&fit=crop'
+          _id: '675a1b2c3d4e5f6789012347',
+          orderId: 'ORD-001236',
+          userId: '675a1b2c3d4e5f6789012340',
+          productId: '675a1b2c3d4e5f6789012345',
+          product_details: {
+            name: 'Gaming Mouse',
+            Image: [
+              'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=400&fit=crop'
+            ]
+          },
+          paymentId: '',
+          payment_status: 'processing',
+          delivery_address: {
+            _id: '675a1b2c3d4e5f6789012346',
+            street: 'Avenida 68 # 22-35',
+            city: 'Bogotá',
+            state: 'Cundinamarca',
+            country: 'Colombia',
+            postalCode: '110331'
+          },
+          subTotalAmt: 45.00,
+          totalAmt: 45.00,
+          invoice_receipt: '',
+          createdAt: '2024-12-05T09:20:00Z',
+          updatedAt: '2024-12-05T09:20:00Z'
         }
-      ],
-      statusColor: 'info',
-      trackingNumber: 'TRK987654321',
-      estimatedDelivery: '2024-12-18',
-      shippingAddress: 'Carrera 15 # 93-07, Bogotá, Colombia'
-    },
-    {
-      id: '#ORD-001236',
-      date: '2024-12-05',
-      status: 'Procesando',
-      total: 45.00,
-      items: [
-        {
-          name: 'Gaming Mouse',
-          price: 45.00,
-          quantity: 1,
-          image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=100&h=100&fit=crop'
-        }
-      ],
-      statusColor: 'warning',
-      trackingNumber: null,
-      estimatedDelivery: '2024-12-20',
-      shippingAddress: 'Avenida 68 # 22-35, Bogotá, Colombia'
-    },
-    {
-      id: '#ORD-001237',
-      date: '2024-11-28',
-      status: 'Cancelado',
-      total: 75.25,
-      items: [
-        {
-          name: 'Smart Watch',
-          price: 75.25,
-          quantity: 1,
-          image: 'https://images.unsplash.com/photo-1434056886845-dac89ffe9b56?w=100&h=100&fit=crop'
-        }
-      ],
-      statusColor: 'error',
-      trackingNumber: null,
-      estimatedDelivery: null,
-      shippingAddress: 'Calle 100 # 15-20, Bogotá, Colombia'
+      ];
+      
+      setOrders(simulatedOrders);
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+      setError('Error al cargar los pedidos');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const getStatusIcon = (status) => {
+  useEffect(() => {
+    fetchUserOrders();
+  }, []);
+
+  // Función para mapear el estado de pago a estado de pedido
+  const getOrderStatus = (paymentStatus) => {
+    switch (paymentStatus) {
+      case 'completed':
+        return { status: 'Entregado', color: 'success' };
+      case 'pending':
+        return { status: 'En Tránsito', color: 'info' };
+      case 'processing':
+        return { status: 'Procesando', color: 'warning' };
+      case 'failed':
+        return { status: 'Cancelado', color: 'error' };
+      default:
+        return { status: 'Procesando', color: 'warning' };
+    }
+  };
+
+  // Función para formatear la dirección
+  const formatAddress = (address) => {
+    if (!address) return 'Sin dirección';
+    return `${address.street}, ${address.city}, ${address.state}, ${address.country}`;
+  };
+
+  const getStatusIcon = (paymentStatus) => {
+    const { status } = getOrderStatus(paymentStatus);
     switch (status) {
       case 'Entregado':
         return <CheckCircle />;
@@ -149,10 +200,11 @@ const MyOrders = () => {
     }
   };
 
-  const filteredOrders = allOrders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+  const filteredOrders = orders.filter(order => {
+    const { status } = getOrderStatus(order.payment_status);
+    const matchesSearch = order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.product_details.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -169,9 +221,49 @@ const MyOrders = () => {
   };
 
   const handleReorder = (order) => {
-    // Lógica para reordenar
-    console.log('Reordenando:', order.id);
+    // Lógica para reordenar - navegar a la página del producto
+    navigate(`/product/${order.productId}`);
   };
+
+  // Mostrar loading
+  if (loading) {
+    return (
+      <section className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4'>
+        <div className='container mx-auto max-w-6xl'>
+          <div className='flex justify-center items-center min-h-[400px]'>
+            <div className='text-center'>
+              <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff5252] mx-auto mb-4'></div>
+              <p className='text-gray-600'>Cargando pedidos...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Mostrar error
+  if (error) {
+    return (
+      <section className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4'>
+        <div className='container mx-auto max-w-6xl'>
+          <Alert severity="error" sx={{ mb: 4 }}>
+            {error}
+          </Alert>
+          <Button
+            variant="contained"
+            onClick={fetchUserOrders}
+            sx={{
+              background: 'linear-gradient(135deg, #ff5252 0%, #ff8a80 100%)',
+              borderRadius: '12px',
+              textTransform: 'none',
+            }}
+          >
+            Reintentar
+          </Button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4'>
@@ -289,123 +381,119 @@ const MyOrders = () => {
           </Card>
         ) : (
           <div className='space-y-4'>
-            {currentOrders.map((order) => (
-              <Card key={order.id} className='shadow-lg rounded-2xl border border-gray-100 hover:shadow-xl transition-shadow'>
-                <CardContent className='p-6'>
-                  <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
-                    {/* Información principal */}
-                    <div className='flex-1'>
-                      <div className='flex items-center gap-3 mb-3'>
-                        <h3 className='text-xl font-bold text-gray-800'>{order.id}</h3>
-                        <Chip
-                          icon={getStatusIcon(order.status)}
-                          label={order.status}
-                          color={order.statusColor}
-                          sx={{ 
-                            borderRadius: '12px',
-                            fontWeight: 600
-                          }}
-                        />
-                      </div>
-                      
-                      <div className='grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600'>
-                        <div>
-                          <span className='font-semibold'>Fecha:</span><br />
-                          {new Date(order.date).toLocaleDateString('es-ES', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
+            {currentOrders.map((order) => {
+              const { status, color } = getOrderStatus(order.payment_status);
+              return (
+                <Card key={order._id} className='shadow-lg rounded-2xl border border-gray-100 hover:shadow-xl transition-shadow'>
+                  <CardContent className='p-6'>
+                    <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
+                      {/* Información principal */}
+                      <div className='flex-1'>
+                        <div className='flex items-center gap-3 mb-3'>
+                          <h3 className='text-xl font-bold text-gray-800'>#{order.orderId}</h3>
+                          <Chip
+                            icon={getStatusIcon(order.payment_status)}
+                            label={status}
+                            color={color}
+                            sx={{ 
+                              borderRadius: '12px',
+                              fontWeight: 600
+                            }}
+                          />
                         </div>
-                        <div>
-                          <span className='font-semibold'>Total:</span><br />
-                          <span className='text-lg font-bold text-[#ff5252]'>${order.total}</span>
+                        
+                        <div className='grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600'>
+                          <div>
+                            <span className='font-semibold'>Fecha:</span><br />
+                            {new Date(order.createdAt).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </div>
+                          <div>
+                            <span className='font-semibold'>Total:</span><br />
+                            <span className='text-lg font-bold text-[#ff5252]'>${order.totalAmt.toFixed(2)}</span>
+                          </div>
+                          <div>
+                            <span className='font-semibold'>Producto:</span><br />
+                            {order.product_details.name}
+                          </div>
                         </div>
-                        <div>
-                          <span className='font-semibold'>Productos:</span><br />
-                          {order.items.length} artículo{order.items.length > 1 ? 's' : ''}
-                        </div>
-                      </div>
 
-                      {/* Preview de productos */}
-                      <div className='flex gap-2 mt-4 overflow-x-auto'>
-                        {order.items.slice(0, 3).map((item, index) => (
-                          <div key={index} className='flex-shrink-0'>
+                        {/* Preview del producto */}
+                        <div className='flex gap-2 mt-4'>
+                          {order.product_details.Image && order.product_details.Image.length > 0 && (
                             <img 
-                              src={item.image} 
-                              alt={item.name}
+                              src={order.product_details.Image[0]} 
+                              alt={order.product_details.name}
                               className='w-12 h-12 rounded-lg object-cover border border-gray-200'
                             />
-                          </div>
-                        ))}
-                        {order.items.length > 3 && (
-                          <div className='w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-600'>
-                            +{order.items.length - 3}
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Acciones */}
-                    <div className='flex flex-col gap-2 lg:min-w-[200px]'>
-                      <Button
-                        startIcon={<Visibility />}
-                        onClick={() => handleViewOrder(order)}
-                        variant="outlined"
-                        fullWidth
-                        sx={{
-                          borderColor: '#ff5252',
-                          color: '#ff5252',
-                          borderRadius: '12px',
-                          textTransform: 'none',
-                          '&:hover': {
-                            borderColor: '#e04848',
-                            backgroundColor: '#fff5f5'
-                          }
-                        }}
-                      >
-                        Ver Detalles
-                      </Button>
-                      
-                      {order.status === 'Entregado' && (
+                      {/* Acciones */}
+                      <div className='flex flex-col gap-2 lg:min-w-[200px]'>
                         <Button
-                          startIcon={<Refresh />}
-                          onClick={() => handleReorder(order)}
-                          variant="contained"
+                          startIcon={<Visibility />}
+                          onClick={() => handleViewOrder(order)}
+                          variant="outlined"
                           fullWidth
                           sx={{
-                            background: 'linear-gradient(135deg, #ff5252 0%, #ff8a80 100%)',
+                            borderColor: '#ff5252',
+                            color: '#ff5252',
                             borderRadius: '12px',
                             textTransform: 'none',
                             '&:hover': {
-                              background: 'linear-gradient(135deg, #e04848 0%, #ff6f6f 100%)',
+                              borderColor: '#e04848',
+                              backgroundColor: '#fff5f5'
                             }
                           }}
                         >
-                          Reordenar
+                          Ver Detalles
                         </Button>
-                      )}
+                        
+                        {order.payment_status === 'completed' && (
+                          <Button
+                            startIcon={<Refresh />}
+                            onClick={() => handleReorder(order)}
+                            variant="contained"
+                            fullWidth
+                            sx={{
+                              background: 'linear-gradient(135deg, #ff5252 0%, #ff8a80 100%)',
+                              borderRadius: '12px',
+                              textTransform: 'none',
+                              '&:hover': {
+                                background: 'linear-gradient(135deg, #e04848 0%, #ff6f6f 100%)',
+                              }
+                            }}
+                          >
+                            Reordenar
+                          </Button>
+                        )}
 
-                      {order.trackingNumber && (
-                        <Button
-                          startIcon={<LocalShipping />}
-                          variant="text"
-                          fullWidth
-                          sx={{
-                            color: '#6b7280',
-                            borderRadius: '12px',
-                            textTransform: 'none',
-                            fontSize: '12px'
-                          }}
-                        >
-                          Rastrear: {order.trackingNumber}
-                        </Button>
-                      )}
+                        {order.paymentId && (
+                          <Button
+                            startIcon={<LocalShipping />}
+                            variant="text"
+                            fullWidth
+                            sx={{
+                              color: '#6b7280',
+                              borderRadius: '12px',
+                              textTransform: 'none',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Pago: {order.paymentId}
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
 
             {/* Paginación */}
             {totalPages > 1 && (
@@ -449,12 +537,12 @@ const MyOrders = () => {
             <DialogTitle>
               <div className='flex items-center justify-between'>
                 <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-                  Detalles del Pedido {selectedOrder.id}
+                  Detalles del Pedido #{selectedOrder.orderId}
                 </Typography>
                 <Chip
-                  icon={getStatusIcon(selectedOrder.status)}
-                  label={selectedOrder.status}
-                  color={selectedOrder.statusColor}
+                  icon={getStatusIcon(selectedOrder.payment_status)}
+                  label={getOrderStatus(selectedOrder.payment_status).status}
+                  color={getOrderStatus(selectedOrder.payment_status).color}
                   sx={{ borderRadius: '12px', fontWeight: 600 }}
                 />
               </div>
@@ -467,46 +555,62 @@ const MyOrders = () => {
                   <div>
                     <h4 className='font-semibold text-gray-800 mb-2'>Información del Pedido</h4>
                     <div className='text-sm text-gray-600 space-y-1'>
-                      <p><strong>Fecha:</strong> {new Date(selectedOrder.date).toLocaleDateString('es-ES')}</p>
-                      <p><strong>Total:</strong> <span className='text-[#ff5252] font-bold'>${selectedOrder.total}</span></p>
-                      {selectedOrder.trackingNumber && (
-                        <p><strong>Seguimiento:</strong> {selectedOrder.trackingNumber}</p>
+                      <p><strong>Fecha:</strong> {new Date(selectedOrder.createdAt).toLocaleDateString('es-ES')}</p>
+                      <p><strong>Subtotal:</strong> <span className='text-[#ff5252] font-bold'>${selectedOrder.subTotalAmt.toFixed(2)}</span></p>
+                      <p><strong>Total:</strong> <span className='text-[#ff5252] font-bold'>${selectedOrder.totalAmt.toFixed(2)}</span></p>
+                      {selectedOrder.paymentId && (
+                        <p><strong>ID de Pago:</strong> {selectedOrder.paymentId}</p>
                       )}
-                      {selectedOrder.estimatedDelivery && (
-                        <p><strong>Entrega estimada:</strong> {new Date(selectedOrder.estimatedDelivery).toLocaleDateString('es-ES')}</p>
+                      {selectedOrder.invoice_receipt && (
+                        <p><strong>Factura:</strong> {selectedOrder.invoice_receipt}</p>
                       )}
                     </div>
                   </div>
                   
                   <div>
                     <h4 className='font-semibold text-gray-800 mb-2'>Dirección de Envío</h4>
-                    <p className='text-sm text-gray-600'>{selectedOrder.shippingAddress}</p>
+                    <p className='text-sm text-gray-600'>{formatAddress(selectedOrder.delivery_address)}</p>
                   </div>
                 </div>
 
                 <Divider />
 
-                {/* Productos */}
+                {/* Producto */}
                 <div>
-                  <h4 className='font-semibold text-gray-800 mb-4'>Productos ({selectedOrder.items.length})</h4>
-                  <div className='space-y-3'>
-                    {selectedOrder.items.map((item, index) => (
-                      <div key={index} className='flex gap-4 p-4 border border-gray-200 rounded-xl'>
-                        <img 
-                          src={item.image} 
-                          alt={item.name}
-                          className='w-16 h-16 rounded-lg object-cover'
-                        />
-                        <div className='flex-1'>
-                          <h5 className='font-semibold text-gray-800'>{item.name}</h5>
-                          <div className='flex justify-between items-center mt-2'>
-                            <span className='text-sm text-gray-600'>Cantidad: {item.quantity}</span>
-                            <span className='font-bold text-[#ff5252]'>${item.price}</span>
-                          </div>
-                        </div>
+                  <h4 className='font-semibold text-gray-800 mb-4'>Producto</h4>
+                  <div className='flex gap-4 p-4 border border-gray-200 rounded-xl'>
+                    {selectedOrder.product_details.Image && selectedOrder.product_details.Image.length > 0 && (
+                      <img 
+                        src={selectedOrder.product_details.Image[0]} 
+                        alt={selectedOrder.product_details.name}
+                        className='w-16 h-16 rounded-lg object-cover'
+                      />
+                    )}
+                    <div className='flex-1'>
+                      <h5 className='font-semibold text-gray-800'>{selectedOrder.product_details.name}</h5>
+                      <div className='flex justify-between items-center mt-2'>
+                        <span className='text-sm text-gray-600'>Cantidad: 1</span>
+                        <span className='font-bold text-[#ff5252]'>${selectedOrder.totalAmt.toFixed(2)}</span>
                       </div>
-                    ))}
+                    </div>
                   </div>
+                  
+                  {/* Galería de imágenes del producto */}
+                  {selectedOrder.product_details.Image && selectedOrder.product_details.Image.length > 1 && (
+                    <div className='mt-4'>
+                      <h5 className='font-semibold text-gray-800 mb-2'>Galería de Imágenes</h5>
+                      <div className='flex gap-2 overflow-x-auto'>
+                        {selectedOrder.product_details.Image.map((image, index) => (
+                          <img 
+                            key={index}
+                            src={image} 
+                            alt={`${selectedOrder.product_details.name} - ${index + 1}`}
+                            className='w-20 h-20 rounded-lg object-cover flex-shrink-0'
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </DialogContent>
@@ -522,7 +626,7 @@ const MyOrders = () => {
               >
                 Cerrar
               </Button>
-              {selectedOrder.status === 'Entregado' && (
+              {selectedOrder.payment_status === 'completed' && (
                 <Button 
                   onClick={() => handleReorder(selectedOrder)}
                   variant="contained"
